@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=D:\Ernesto\3. UCM\3. Gaia\1.Tesis\2026\Enero\Scopus + Literature Mining + Pybliometrics\literature_mining\litmin
+set VIRTUAL_ENV=C:\Conciencia\Projects\Literature Mining\literature_mining\litmin
 
 if not defined PROMPT set PROMPT=$P$G
 
