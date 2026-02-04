@@ -1,3 +1,23 @@
+# Literature mining proyect
+#
+# Minería de literatura científica para la extracción de información relevante.
+#
+# El proyecto consta de los siguientes módulos:
+# 1. El query builder (src/query_builder.py) que construye queries robustos para Scopus.
+# 2. El main (src/main.py) que ejecuta las búsquedas en Scopus y guarda los resultados en un archivo Excel.
+#
+# Por búsqueda, se construye actualmente un archivo excel con la fecha de consulta, en donde se especifica:
+# 1. Por un lado se registra el query utilizado, las keywords, el rango de años y el total de resultados obtenidos.
+# 2. Por otro lado, se guarda una hoja con los papers obtenidos, incluyendo título, autores, número de citas y enlace a Scopus.
+#
+# Eventualmente, se pretende utilizar una BD relacional para determinar referencias cruzadas entre papers, autores, instituciones y países.
+# De esta forma, se podrá realizar análisis más profundos sobre la literatura científica en un área específica.
+# 
+#
+# Ernesto Cantú
+# Monterrey, México
+# 26 Enero 2026
+
 from datetime import datetime
 import pandas as pd
 from pybliometrics.scopus import ScopusSearch, AbstractRetrieval
@@ -10,7 +30,7 @@ import time
 
 def main():
     # --- Configuración ---
-    keywords = ["xai", "business"]
+    keywords = ["methodology", "auditing", "ai"]
     year_from = 2020
     year_to = 2025
     output_file_path = "C:/Conciencia/LIT_MINING_OUTPUT/"
