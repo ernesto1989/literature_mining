@@ -3,11 +3,14 @@
 # Minería de literatura científica para la extracción de información relevante.
 #
 # El proyecto consta de los siguientes módulos:
-# 1. El query builder (src/query_builder.py) que construye queries robustos para Scopus.
-# 2. El main (src/main.py) que ejecuta las búsquedas en Scopus y guarda los resultados en un archivo Excel.
+# 1. Query builder (src/query_builder.py) que construye los queries para Scopus.
+# 2. Scopus search (src/scopus_search.py) que realiza la consulta al API de Scopus a través de pybliometrics y procesa los resultados.
+# 3. Excel output (src/excel_output.py) que realiza la escritura a un archivo excel.
+# 4. Rdbms output (src/rdbms_output.py) que realizará la escritura a una base de datos relacional (por implementar).
+# 5. Main (src/main.py) que ejecuta las búsquedas en Scopus y guarda los resultados en un archivo Excel.
 #
-# Por búsqueda, se construye actualmente un archivo excel con la fecha de consulta, en donde se especifica:
-# 1. Por un lado se registra el query utilizado, las keywords, el rango de años y el total de resultados obtenidos.
+# En la salida de excel se construye actualmente un archivo excel con la fecha de consulta, en donde se especifica:
+# 1. Por un lado se registra el query utilizado, las keywords, el rango de años y el total de resultados obtenidos en la pestaña de query_log.
 # 2. Por otro lado, se guarda una hoja con los papers obtenidos, incluyendo título, autores, número de citas y enlace a Scopus.
 #
 # Eventualmente, se pretende utilizar una BD relacional para determinar referencias cruzadas entre papers, autores, instituciones y países.
@@ -22,8 +25,10 @@ import pybliometrics.scopus as sc
 from query_builder import build_scopus_query as query_builder
 
 from excel_output import save_to_excel
+from rdbms_output import save_to_db
 from scopus_search import scopus_search
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 def read_parameters():
@@ -36,10 +41,18 @@ def read_parameters():
     keywords = [k.strip() for k in keywords]
     year_from = int(os.getenv("YEAR_FROM", "2020"))
     year_to = int(os.getenv("YEAR_TO", "2025"))
-    output_file_path = os.getenv("OUTPUT_FILE_PATH", "C:/Conciencia/LIT_MINING_OUTPUT/")
+    output_file_path = os.getenv("OUTPUT_FILE_PATH", str(Path.home() / "LIT_MINING_OUTPUT"))
+    # Normalize path (expand user and make absolute)
+    output_file_path = os.path.expanduser(output_file_path)
+    output_file_path = os.path.abspath(output_file_path)
     output_file_name = os.getenv("OUTPUT_FILE_NAME", "scopus_mining.xlsx")
-    write_to_rdbms = os.getenv("WRITE_TO_RDBMS", "False").lower() == "true"
-    return keywords, year_from, year_to, output_file_path, output_file_name, write_to_rdbms
+    write_to_db = os.getenv("WRITE_TO_DB", "False").lower() == "true"
+    host = os.getenv("MYSQL_HOST", "localhost")
+    port = int(os.getenv("MYSQL_PORT", "3306"))
+    user = os.getenv("MYSQL_USER", "tu_usuario")
+    password = os.getenv("MYSQL_PASSWORD", "tu_password")
+    db = os.getenv("MYSQL_DB", "scopus_db")
+    return keywords, year_from, year_to, output_file_path, output_file_name, write_to_db, host, port, user, password, db
 
 def main():
     """
@@ -53,23 +66,30 @@ def main():
     """
 
     # --- Configuración ---
-    keywords, year_from, year_to, output_file_path, output_file_name, write_to_rdbms = read_parameters()
+    keywords, year_from, year_to, output_file_path, output_file_name, write_to_db, host, port, user, password, db = read_parameters()
    
     query = query_builder(keywords=keywords,year_from=year_from,year_to=year_to,doctype="ar")
     print(f"Query construido:\n{query}\n")
     
-    query_log_row, papers_df, sheet_name_papers = scopus_search(
-        query,
-        keywords,
-        year_from,
-        year_to
-    )
 
-    if not write_to_rdbms:
+    if not write_to_db:
+        query_log_row, papers_df, sheet_name_papers = scopus_search(
+            query,
+            keywords,
+            year_from,
+            year_to,
+            False
+        )
         save_to_excel(output_file_path, output_file_name, sheet_name_papers, query_log_row, papers_df)
     else:
-        pass
-
+        query_log, papers_to_db, authors_to_db_list, relations_to_db = scopus_search(
+            query,
+            keywords,
+            year_from,
+            year_to,
+            True
+        )
+        save_to_db(host, port, user, password, db, query_log, papers_to_db, authors_to_db_list, relations_to_db)
 
 
 if __name__ == "__main__":
