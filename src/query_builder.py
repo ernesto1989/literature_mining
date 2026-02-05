@@ -1,3 +1,10 @@
+#
+# Script que construye las consultas en base a las keywords y parámetros proporcionados.
+# 
+# Ernesto Cantú
+# 04 de febrero de 2026
+#
+
 def build_scopus_query(
     keywords,
     year_from=None,
@@ -5,7 +12,7 @@ def build_scopus_query(
     doctype="ar"
 ):
     """
-    Construye un query Scopus robusto.
+    Construye un query Scopus en base a las keywords y parámetros proporcionados.
     """
 
     if not keywords:
