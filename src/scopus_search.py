@@ -19,8 +19,6 @@ def prepare_for_excel(s,keywords, year_from, year_to, query,log_id_short,fecha_h
         Prepara los dataframes para su escritura en Excel.
         Por implementar.
     """
-    
-
     # --- Query Log ---
     total_results = s.get_results_size()
     query_log_row = pd.DataFrame([{
@@ -83,12 +81,13 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
     papers_to_db = []
     authors_to_db = set() # Usamos set para evitar duplicados en memoria
     relations_to_db = []
+    references_to_db = []
 
     print(f"Procesando {len(s.results)} resultados...")
 
     for r in s.results:
         try:
-            ab = AbstractRetrieval(r.eid, view="META")
+            ab = AbstractRetrieval(r.eid, view="FULL")
              # Intentar obtener autores del resultado de búsqueda
             author_ids = r.author_ids
             author_names = r.author_names
@@ -110,6 +109,28 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
                     authors_to_db.add((auth_id, auth_name))
                     # Guardamos la relación (eid, author_id)
                     relations_to_db.append((r.eid, auth_id))
+
+
+            if ab.references:
+                print(f"   --> Extrayendo {len(ab.references)} referencias bibliográficas...")
+                for ref in ab.references:
+                    generated_url = None
+
+                    if ref.id:
+                        generated_url = f"https://www.scopus.com/record/display.uri?eid={ref.id}&origin=resultslist"
+                    
+                    # Prioridad 2: Si no hay EID pero hay DOI
+                    elif hasattr(ref, 'doi') and ref.doi:
+                        generated_url = f"https://doi.org/{ref.doi}"
+
+                    references_to_db.append((
+                        r.eid,           # El paper origen
+                        ref.id,          # ID de la referencia en Scopus (si tiene)
+                        ref.title,       # Título del paper citado
+                        ref.authors,     # Autores citados
+                        #ref.year,         # Año de la cita
+                        generated_url
+                    ))
             
             time.sleep(0.1)
         except Exception as e:
@@ -127,7 +148,7 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
     )
 
     # Mandar todo a la base de datos
-    return query_log, papers_to_db, list(authors_to_db), relations_to_db
+    return query_log, papers_to_db, list(authors_to_db), relations_to_db,references_to_db
     
 
 
@@ -139,7 +160,7 @@ def scopus_search(query, keywords, year_from, year_to,save_to_db=False):
     sc.init()
     try:
         # Nota: count=25 es el máximo para no suscriptores por petición
-        s = ScopusSearch(query, subscriber=True, count=25) 
+        s = ScopusSearch(query, subscriber=False, count=25) 
     except Scopus400Error:
         print("Cuota agotada o error en la petición. Deteniendo ejecución.")
         return
@@ -152,7 +173,7 @@ def scopus_search(query, keywords, year_from, year_to,save_to_db=False):
         query_log_row, papers_df, sheet_name_papers = prepare_for_excel(s, keywords, year_from, year_to, query, log_id_short, fecha_hoy)
         return query_log_row, papers_df, sheet_name_papers
     else:
-        query_log, papers_to_db, authors_to_db_list, relations_to_db = prepare_for_db(s, keywords, year_from, year_to, query, log_id_short, fecha_hoy)
-        return query_log, papers_to_db, authors_to_db_list, relations_to_db
+        query_log, papers_to_db, authors_to_db_list, relations_to_db,references_to_db = prepare_for_db(s, keywords, year_from, year_to, query, log_id_short, fecha_hoy)
+        return query_log, papers_to_db, authors_to_db_list, relations_to_db, references_to_db
 
    

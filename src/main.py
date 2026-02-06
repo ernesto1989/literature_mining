@@ -31,28 +31,18 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-def read_parameters():
+def read_env():
     """
         Función que lee los parámetros de entrada desde un archivo .env.
         Por implementar.
     """
     load_dotenv()            
-    keywords = os.getenv("KEYWORDS", "methodology,auditing,ai").split(",")
-    keywords = [k.strip() for k in keywords]
-    year_from = int(os.getenv("YEAR_FROM", "2020"))
-    year_to = int(os.getenv("YEAR_TO", "2025"))
-    output_file_path = os.getenv("OUTPUT_FILE_PATH", str(Path.home() / "LIT_MINING_OUTPUT"))
-    # Normalize path (expand user and make absolute)
-    output_file_path = os.path.expanduser(output_file_path)
-    output_file_path = os.path.abspath(output_file_path)
-    output_file_name = os.getenv("OUTPUT_FILE_NAME", "scopus_mining.xlsx")
-    write_to_db = os.getenv("WRITE_TO_DB", "False").lower() == "true"
     host = os.getenv("MYSQL_HOST", "localhost")
     port = int(os.getenv("MYSQL_PORT", "3306"))
     user = os.getenv("MYSQL_USER", "tu_usuario")
     password = os.getenv("MYSQL_PASSWORD", "tu_password")
     db = os.getenv("MYSQL_DB", "scopus_db")
-    return keywords, year_from, year_to, output_file_path, output_file_name, write_to_db, host, port, user, password, db
+    return  host, port, user, password, db
 
 def main():
     """
@@ -66,13 +56,20 @@ def main():
     """
 
     # --- Configuración ---
-    keywords, year_from, year_to, output_file_path, output_file_name, write_to_db, host, port, user, password, db = read_parameters()
-   
+    keywords = ["methodology", "auditing", "ai", "business"]
+    year_from = 2024    
+    year_to = 2025
+    write_to_db = True  # Cambia a False para escribir en Excel
+    
     query = query_builder(keywords=keywords,year_from=year_from,year_to=year_to,doctype="ar")
     print(f"Query construido:\n{query}\n")
     
 
     if not write_to_db:
+        # Archivo de Salida
+        output_file_path = "C:/Conciencia/LIT_MINING_OUTPUT/"
+        output_file_name = "scopus_mining.xlsx"
+
         query_log_row, papers_df, sheet_name_papers = scopus_search(
             query,
             keywords,
@@ -82,14 +79,15 @@ def main():
         )
         save_to_excel(output_file_path, output_file_name, sheet_name_papers, query_log_row, papers_df)
     else:
-        query_log, papers_to_db, authors_to_db_list, relations_to_db = scopus_search(
+        host, port, user, password, db = read_env()
+        query_log, papers_to_db, authors_to_db_list, relations_to_db, references_to_db = scopus_search(
             query,
             keywords,
             year_from,
             year_to,
             True
         )
-        save_to_db(host, port, user, password, db, query_log, papers_to_db, authors_to_db_list, relations_to_db)
+        save_to_db(host, port, user, password, db, keywords, query_log, papers_to_db, authors_to_db_list, relations_to_db,references_to_db)
 
 
 if __name__ == "__main__":
