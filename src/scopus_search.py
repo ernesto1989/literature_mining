@@ -88,9 +88,7 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
     for r in s.results:
         try:
             ab = AbstractRetrieval(r.eid, view="FULL")
-             # Intentar obtener autores del resultado de búsqueda
-            author_ids = r.author_ids
-            author_names = r.author_names
+            
             # Datos del Paper
             papers_to_db.append((
                 r.eid, 
@@ -99,17 +97,13 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
                 f"https://www.scopus.com/record/display.uri?eid={r.eid}"
             ))
 
-            # Datos de Autores y Relaciones
-            # Usar author_ids y author_names que vienen del resultado de búsqueda
-            if author_ids and author_names:
-                ids_list = [id.strip() for id in str(author_ids).split(";")]
-                names_list = [name.strip() for name in str(author_names).split(";")]
-                for auth_id, auth_name in zip(ids_list, names_list):
-                    # Guardamos autor en el set (author_id, name)
-                    authors_to_db.add((auth_id, auth_name))
-                    # Guardamos la relación (eid, author_id)
-                    relations_to_db.append((r.eid, auth_id))
-
+            if ab.authors:
+                for auth in ab.authors:
+                    a_id = str(auth.auid)
+                    a_name = f"{auth.surname}, {auth.given_name}"
+                    
+                    authors_to_db.add((a_id, a_name))
+                    relations_to_db.append((r.eid, a_id))
 
             if ab.references:
                 print(f"   --> Extrayendo {len(ab.references)} referencias bibliográficas...")
