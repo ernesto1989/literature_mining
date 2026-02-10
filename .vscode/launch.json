@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Run src/main.py (with args)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--keywords", "methodology", "auditing", "ai", "business",
+                "--year-from", "2019",
+                "--year-to", "2025"
+            ]
+        },
+        {
+            "name": "Python: Run src/main.py (write to DB)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--keywords", "methodology", "auditing",
+                "--year-from", "2020",
+                "--year-to", "2025",
+                "--write-to-db"
+            ]
+        }
+    ]
+}

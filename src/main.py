@@ -30,6 +30,7 @@ from scopus_search import scopus_search
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import argparse
 
 def read_env():
     """
@@ -55,11 +56,23 @@ def main():
             b) Base de datos Relacional- Por implementar
     """
 
-    # --- Configuración ---
-    keywords = ["methodology", "auditing", "ai", "business"]
-    year_from = 2024    
-    year_to = 2025
-    write_to_db = True  # Cambia a False para escribir en Excel
+    # --- Configuración (desde argumentos CLI) ---
+    parser = argparse.ArgumentParser(description="Scopus literature mining")
+    parser.add_argument(
+        "--keywords",
+        nargs="+",
+        help="Space-separated keywords (e.g. --keywords machine learning ai)",
+        default=["methodology", "auditing", "ai", "business"]
+    )
+    parser.add_argument("--year-from", type=int, dest="year_from", default=2019, help="Start year")
+    parser.add_argument("--year-to", type=int, dest="year_to", default=2025, help="End year")
+    parser.add_argument("--write-to-db", action="store_true", dest="write_to_db", help="Write results to DB instead of Excel")
+    args = parser.parse_args()
+
+    keywords = args.keywords
+    year_from = args.year_from
+    year_to = args.year_to
+    write_to_db = args.write_to_db
     
     query = query_builder(keywords=keywords,year_from=year_from,year_to=year_to,doctype="ar")
     print(f"Query construido:\n{query}\n")

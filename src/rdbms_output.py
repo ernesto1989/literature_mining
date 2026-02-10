@@ -18,7 +18,7 @@ def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, auth
             port=port
         )
         cursor = conn.cursor()
-        # 1. Insertar Keywords (Si no existen) y obtener sus IDs
+        # 1. Insertar Keywords (Si no existen) y obtener sus IDs para el resto del proceso
         keyword_ids = []
         for kw in keywords:
             # Insertar si no existe
@@ -33,7 +33,7 @@ def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, auth
                      VALUES (%s, %s, %s, %s, %s, %s, %s)"""
         cursor.execute(log_sql, query_log)
         
-        query_db_id = cursor.lastrowid # Este es el ID autoincremental de la DB
+        query_db_id = query_log[0] # El log_id (uuid) autogenerado
         
         for kw_id in keyword_ids:
             cursor.execute("INSERT INTO query_keywords (query_log_id, keyword_id) VALUES (%s, %s)", 
@@ -42,7 +42,7 @@ def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, auth
 
         # 3. Insertar en query_details (Papers)
         # Usamos IGNORE para no fallar si el paper ya existe de una consulta previa
-        paper_sql = "INSERT IGNORE INTO query_details (eid, title, citations, url) VALUES (%s, %s, %s, %s)"
+        paper_sql = "INSERT IGNORE INTO query_details (eid, log_id,title, citations, url) VALUES (%s, %s,%s, %s, %s)"
         cursor.executemany(paper_sql, papers_list)
 
         # 4. Insertar Autores (Solo si no existen)

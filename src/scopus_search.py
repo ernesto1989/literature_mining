@@ -92,6 +92,7 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
             # Datos del Paper
             papers_to_db.append((
                 r.eid, 
+                log_id_short,  # Para relacionar con el log de la consulta
                 r.title, 
                 r.citedby_count, 
                 f"https://www.scopus.com/record/display.uri?eid={r.eid}"
