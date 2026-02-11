@@ -31,3 +31,36 @@ Objetivo:
     - `MYSQL_PASSWORD`
     - `MYSQL_DATABASE` — `scopus_db`
 5. requirements.txt - Archivo de requerimientos de Python
+
+
+## ¿Cómo iniciar? 
+
+**1. Descarga el repositorio**
+
+Descarga el repositorio a una carpeta local.
+
+```powershell
+> git clone https://github.com/ernesto1989/literature_mining.git
+```
+
+![Repo](img/clone_proj.jpg)
+
+
+**2. Inicia el ambiente virtual e instala los requerimientos de python**
+
+```powershell
+> cd .\literature_mining\
+> .\litmin\Scripts\activate
+> pip install -r requirements.tx
+```
+
+![Repo](img/prep_ambiente.jpg)
+
+
+**3. Corre el proyecto, utilizando los argumentos de entrada**
+
+Una vez instalados los requerimientos, puedes correr desde la terminal el proyecto.
+
+```powershell
+> python src/main.py --keywords "natural language processing" "machine learning" --year-from 2020 --year-to 2025
+```
