@@ -71,7 +71,7 @@ def main():
     year_from = args.year_from
     year_to = args.year_to
     
-    query = query_builder(keywords=keywords,year_from=year_from,year_to=year_to,doctype=["ar","jo","su"])
+    query = query_builder(keywords=keywords,year_from=year_from,year_to=year_to,doctype=["ar","re"])
     print(f"Query construido:\n{query}\n")
     
     # Ejecutar búsqueda en Scopus y procesar resultados
