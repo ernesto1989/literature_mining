@@ -8,7 +8,7 @@
 import mysql
 from mysql.connector import Error
 
-def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, authors_list, relations_list,references_to_db):
+def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, authors_list, relations_list,references_to_db,query_paper_relations):
     try:
         conn = mysql.connector.connect(
             host=host,
@@ -42,14 +42,18 @@ def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, auth
 
         # 3. Insertar en query_details (Papers)
         # Usamos IGNORE para no fallar si el paper ya existe de una consulta previa
-        paper_sql = "INSERT IGNORE INTO query_details (eid, log_id,title, citations, url) VALUES (%s, %s,%s, %s, %s)"
+        paper_sql = "INSERT IGNORE INTO query_details (eid, title, citations, url) VALUES (%s,%s, %s, %s)"
         cursor.executemany(paper_sql, papers_list)
 
-        # 4. Insertar Autores (Solo si no existen)
+        # 4. Insertar en query_paper para relacionar cada paper con la consulta (log_id)
+        query_paper_sql = "INSERT IGNORE INTO query_paper (query_log_id, eid) VALUES (%s, %s)"
+        cursor.executemany(query_paper_sql, query_paper_relations)
+
+        # 5. Insertar Autores (Solo si no existen)
         author_sql = "INSERT IGNORE INTO authors (author_id, name) VALUES (%s, %s)"
         cursor.executemany(author_sql, authors_list)
 
-        # 5. Insertar Relaciones Paper-Autor
+        # 6. Insertar Relaciones Paper-Autor
         rel_sql = "INSERT IGNORE INTO paper_authors (eid, author_id) VALUES (%s, %s)"
         cursor.executemany(rel_sql, relations_list)
 

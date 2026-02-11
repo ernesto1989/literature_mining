@@ -1,3 +1,4 @@
+drop database scopus_db;
 create database scopus_db;
 use scopus_db;
 
@@ -44,16 +45,21 @@ CREATE TABLE `query_keywords` (
 );
 
 
--- Query details tendrá todos los papers que fueron regresados por una consulta.
+-- Query details tendrá todos los papers que fueron regresados por alguna consulta.
 CREATE TABLE `query_details` (
   `eid` varchar(50) NOT NULL,
-  `log_id` varchar(8) NOT NULL,
   `title` text NOT NULL,
   `citations` int DEFAULT '0',
   `url` text,
-  PRIMARY KEY (`eid`,`log_id`)
+  PRIMARY KEY (`eid`)
 );
 
+-- Aquí guardaré la relación entre papers y queries
+create table `query_paper`(
+	`query_log_id` varchar(8) NOT null,
+	`eid` varchar(50) NOT NULL,
+	PRIMARY KEY (`query_log_id`,`eid`)
+);
 
 
 -- Ahora si, tanto paper author como paper references se almacenarán una sola vez. Ya que, aunque el paper aparezca en múltiples consultas,

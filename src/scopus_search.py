@@ -14,64 +14,6 @@ from datetime import datetime
 import uuid
 import time
 
-def prepare_for_excel(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy):
-    """
-        Prepara los dataframes para su escritura en Excel.
-        Por implementar.
-    """
-    # --- Query Log ---
-    total_results = s.get_results_size()
-    query_log_row = pd.DataFrame([{
-        "log_id": log_id_short,
-        "fecha_consulta": fecha_hoy,
-        "keywords": ", ".join(keywords),
-        "start_year": year_from,
-        "end_year": year_to,
-        "total_resultados": total_results,
-        "query": query
-    }])
-
-    # --- Procesamiento de Papers ---
-    papers_data = []
-    print(f"Procesando {len(s.results)} resultados...")
-
-    for i, r in enumerate(s.results):
-        # Intentar obtener autores del resultado de búsqueda
-        author_ids = r.author_ids
-        author_names = r.author_names
-        
-        # Si vienen vacíos (común en modo no-suscriptor), usamos AbstractRetrieval
-        if not author_names:
-            try:
-                ab = AbstractRetrieval(r.eid, view="META")
-                if ab.authors:
-                    author_ids = "; ".join([str(a.auid) for a in ab.authors])
-                    author_names = "; ".join([f"{a.surname}, {a.given_name}" for a in ab.authors])
-                else:
-                    author_ids = "N/D"
-                    author_names = "N/D"
-                
-                # Un pequeño delay para no saturar la API si son muchos registros
-                time.sleep(0.2) 
-            except Exception as e:
-                author_names = f"Error al recuperar: {str(e)}"
-
-        papers_data.append({
-            "eid": r.eid,
-            "title": r.title,
-            "author_ids": author_ids,   # Columna de IDs (Antes)
-            "authors": author_names,
-            "cited_by": r.citedby_count,
-            "scopus_url": f"https://www.scopus.com/record/display.uri?eid={r.eid}&origin=resultslist"
-        })
-
-    papers_df = pd.DataFrame(papers_data)
-    sheet_name_papers = f"p_{log_id_short}" # Nombre corto (máx 31 caracteres)
-
-    return query_log_row, papers_df, sheet_name_papers
-
-
-
 def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy):
     """
         Prepara las estructuras para su escritura en la base de datos relacional.
@@ -82,6 +24,7 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
     authors_to_db = set() # Usamos set para evitar duplicados en memoria
     relations_to_db = []
     references_to_db = []
+    paper_query_relations = [] # Para relacionar eid con la consulta (log_id)
 
     print(f"Procesando {len(s.results)} resultados...")
 
@@ -92,11 +35,12 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
             # Datos del Paper
             papers_to_db.append((
                 r.eid, 
-                log_id_short,  # Para relacionar con el log de la consulta
                 r.title, 
                 r.citedby_count, 
                 f"https://www.scopus.com/record/display.uri?eid={r.eid}"
             ))
+
+            paper_query_relations.append((log_id_short, r.eid))
 
             if ab.authors:
                 for auth in ab.authors:
@@ -107,7 +51,6 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
                     relations_to_db.append((r.eid, a_id))
 
             if ab.references:
-                print(f"   --> Extrayendo {len(ab.references)} referencias bibliográficas...")
                 for ref in ab.references:
                     generated_url = None
 
@@ -143,7 +86,7 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
     )
 
     # Mandar todo a la base de datos
-    return query_log, papers_to_db, list(authors_to_db), relations_to_db,references_to_db
+    return query_log, papers_to_db, list(authors_to_db), relations_to_db,references_to_db,paper_query_relations
     
 
 
@@ -164,11 +107,7 @@ def scopus_search(query, keywords, year_from, year_to,save_to_db=False):
     log_id_short = str(uuid.uuid4())[:8]
     fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    if not save_to_db:
-        query_log_row, papers_df, sheet_name_papers = prepare_for_excel(s, keywords, year_from, year_to, query, log_id_short, fecha_hoy)
-        return query_log_row, papers_df, sheet_name_papers
-    else:
-        query_log, papers_to_db, authors_to_db_list, relations_to_db,references_to_db = prepare_for_db(s, keywords, year_from, year_to, query, log_id_short, fecha_hoy)
-        return query_log, papers_to_db, authors_to_db_list, relations_to_db, references_to_db
+    query_log, papers_to_db, authors_to_db_list, relations_to_db,references_to_db,paper_query_relations = prepare_for_db(s, keywords, year_from, year_to, query, log_id_short, fecha_hoy)
+    return query_log, papers_to_db, authors_to_db_list, relations_to_db, references_to_db,paper_query_relations
 
    

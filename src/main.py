@@ -24,8 +24,7 @@
 import pybliometrics.scopus as sc
 from query_builder import build_scopus_query as query_builder
 
-from excel_output import save_to_excel
-from rdbms_output import save_to_db
+from db_output import save_to_db
 from scopus_search import scopus_search
 import os
 from pathlib import Path
@@ -66,41 +65,25 @@ def main():
     )
     parser.add_argument("--year-from", type=int, dest="year_from", default=2019, help="Start year")
     parser.add_argument("--year-to", type=int, dest="year_to", default=2025, help="End year")
-    parser.add_argument("--write-to-db", action="store_true", dest="write_to_db", help="Write results to DB instead of Excel")
     args = parser.parse_args()
 
     keywords = args.keywords
     year_from = args.year_from
     year_to = args.year_to
-    write_to_db = args.write_to_db
     
     query = query_builder(keywords=keywords,year_from=year_from,year_to=year_to,doctype="ar")
     print(f"Query construido:\n{query}\n")
     
-
-    if not write_to_db:
-        # Archivo de Salida
-        output_file_path = "C:/Conciencia/LIT_MINING_OUTPUT/"
-        output_file_name = "scopus_mining.xlsx"
-
-        query_log_row, papers_df, sheet_name_papers = scopus_search(
-            query,
-            keywords,
-            year_from,
-            year_to,
-            False
-        )
-        save_to_excel(output_file_path, output_file_name, sheet_name_papers, query_log_row, papers_df)
-    else:
-        host, port, user, password, db = read_env()
-        query_log, papers_to_db, authors_to_db_list, relations_to_db, references_to_db = scopus_search(
-            query,
-            keywords,
-            year_from,
-            year_to,
-            True
-        )
-        save_to_db(host, port, user, password, db, keywords, query_log, papers_to_db, authors_to_db_list, relations_to_db,references_to_db)
+    # Ejecutar búsqueda en Scopus y procesar resultados
+    host, port, user, password, db = read_env()
+    query_log, papers_to_db, authors_to_db_list, relations_to_db, references_to_db,paper_query_relations = scopus_search(
+        query,
+        keywords,
+        year_from,
+        year_to,
+        True
+    )
+    save_to_db(host, port, user, password, db, keywords, query_log, papers_to_db, authors_to_db_list, relations_to_db,references_to_db,paper_query_relations)
 
 
 if __name__ == "__main__":
