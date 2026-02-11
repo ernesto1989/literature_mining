@@ -10,6 +10,24 @@ Referencias y repositorio base:
 
 Objetivo:
 
-1. Acceder a la API de Scopus para buscar y generar datos de textos científicos
-2. Crear una Base de Datos que permita realizar la analítica necesaria para conocer al respecto de investigación de frontera en el tema de tesis
+1. Acceder a la API de Scopus para buscar y generar datos de textos científicos.
+2. Crear una Base de Datos que permita realizar la analítica necesaria para conocer al respecto de investigación de frontera en el tema de tesis.
 3. Descargar y generar una biblioteca de lectura de papers como referencia de mi investigación.
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+## Qué contiene este repositorio
+
+![Contenido - Repositorio](img/repo.jpg)
+
+1. db_migration/ddl.sql - El archivo ddl donde se encuentra la estructura de la base de datos requerida. 
+2. litmin - Carpeta del ambiente virtual de python.
+3. src - Aquí se encuentran todos los scripts requeridos para la ejecución del proyecto.
+4. .env - Mi archivo de variables de entorno. Aquí dejo las credenciales de mi server de base de datos. Deberás incluir tus propias variables:
+    a. MYSQL_HOST
+    b. MYSQL_PORT
+    c. MYSQL_USER
+    d. MYSQL_PASSWORD
+    e. MYSQL_DATABASE - scopus_db
+5. requirements.txt - Archivo de requerimientos de Python
