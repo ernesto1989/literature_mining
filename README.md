@@ -62,5 +62,5 @@ Descarga el repositorio a una carpeta local.
 Una vez instalados los requerimientos, puedes correr desde la terminal el proyecto.
 
 ```powershell
-> python src/main.py --keywords "natural language processing" "machine learning" --year-from 2020 --year-to 2025
+> python src/main.py --keywords "methodology" "xai" "business" --year-from 2020 --year-to 2025
 ```
