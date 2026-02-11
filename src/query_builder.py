@@ -9,7 +9,7 @@ def build_scopus_query(
     keywords,
     year_from=None,
     year_to=None,
-    doctype=["ar","jo","su"]
+    doctype=["ar","re"]
 ):
     """
     Construye un query Scopus en base a las keywords y parámetros proporcionados.
@@ -39,5 +39,5 @@ def build_scopus_query(
     query += " AND ("
     query += " OR ".join([f'DOCTYPE("{dt}")' for dt in doctype])
     query += ")"
-    
+
     return query
