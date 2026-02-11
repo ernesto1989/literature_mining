@@ -36,6 +36,7 @@ def prepare_for_db(s,keywords, year_from, year_to, query,log_id_short,fecha_hoy)
             papers_to_db.append((
                 r.eid, 
                 r.title, 
+                ab.subtype,
                 r.citedby_count, 
                 f"https://www.scopus.com/record/display.uri?eid={r.eid}"
             ))

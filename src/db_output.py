@@ -42,7 +42,7 @@ def save_to_db(host,port,user,password,db, keywords,query_log, papers_list, auth
 
         # 3. Insertar en query_details (Papers)
         # Usamos IGNORE para no fallar si el paper ya existe de una consulta previa
-        paper_sql = "INSERT IGNORE INTO query_details (eid, title, citations, url) VALUES (%s,%s, %s, %s)"
+        paper_sql = "INSERT IGNORE INTO query_details (eid, title, doctype, citations, url) VALUES (%s,%s, %s, %s, %s)"
         cursor.executemany(paper_sql, papers_list)
 
         # 4. Insertar en query_paper para relacionar cada paper con la consulta (log_id)

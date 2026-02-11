@@ -82,3 +82,7 @@ CREATE TABLE `paper_references` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_unique_ref` (`source_eid`,`ref_id`)
 );
+
+
+ALTER TABLE scopus_db.query_details ADD doctype varchar(10) NULL;
+ALTER TABLE scopus_db.query_details CHANGE doctype doctype varchar(10) NULL AFTER title;
